@@ -3,68 +3,70 @@ import java.util.Scanner;
 import java.util.Random;
 
 public class SudokuGame {
-    static void rand_values(int[][] ib, int cl) {
-        int max = 8;
-        int max_val = 9;
-        int min = 0;
-        int min_val = 1;
-        int rr = (int) ((Math.random() * (max - min)) + min);
-        int rc = (int) ((Math.random() * (max - min)) + min);
-        int rv = (int) ((Math.random() * (max_val - min_val)) + min_val);
-        if (isValid(ib, rv, rr, rc)) {
-            ib[rr][rc] = rv;
+    private int[][] board;
+    private int numRemove;
+    private int[] numList = new int[9];
+
+    public SudokuGame(int[][] sudokuBoard, int level) {
+        board = sudokuBoard;
+
+        // determine how many values to remove
+        if (level == 1) {
+            numRemove = 25;
+        } else if (level == 2) {
+            numRemove = 40;
+        } else if (level == 3) {
+            numRemove = 81 - 17;
+        } else {
+            numRemove = 25;
+        }
+
+        for (int i = 0; i < 9; i++) {
+            numList[i] = i + 1;
         }
     }
 
-    public int[][] randomize(String d) {
-        int[][] board = { 
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0 } 
-        };
-
-        int ediff = 60;
-        int mdiff = 40;
-        int hdiff = 30;
-
-        if (d.equals("Easy")) {
-            for (int w = 0; w < ediff; w++) {
-                rand_values(board, ediff);
-            }
-        }
-        if (d.equals("Medium")) {
-            for (int w = 0; w < mdiff; w++) {
-                rand_values(board, mdiff);
-            }
-        }
-        if (d.equals("Hard")) {
-            for (int w = 0; w < hdiff; w++) {
-                rand_values(board, hdiff);
-            }
-        }
+    // getter method for board
+    public int[][] getBoard() {
         return board;
     }
 
-    public boolean solve(int[][] b) {
-        // Backtracking Algorithm
-        // 1. Choose Empty
-        // 2. Try all number 1-9
-        // 3. Check validity after all each # and if not backtrack
-        for (int row = 0; row < b.length; row++) {
-            for (int column = 0; column < b.length; column++) {
-                if (b[row][column] == 0) {
-                    for (int i = 1; i <= 9; i++) {
-                        b[row][column] = i;
-                        if (isValid(b, i, row, column) && solve(b)) {
-                            return true;
+    // shuffled set board
+    public void shuffle() {
+        for (int i = 0; i < 9; i++) {
+            int rand = (int) ((Math.random() * (10 - 1)) + 1);
+            numList[i] = rand;
+        }
+    }
+
+    public boolean checkBoard() {
+        // Check if board is full
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                if (board[i][j] == 0) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public boolean fillBoard() {
+        // populate entire random solved board
+        for (int row = 0; row < board.length; row++) {
+            for (int column = 0; column < board.length; column++) {
+                if (board[row][column] == 0) {
+                    shuffle();
+                    for (int i : numList) {
+                        board[row][column] = i;
+                        if (isValid(i, row, column)) {
+                            if (checkBoard()) {
+                                return true;
+                            } else if (fillBoard()) {
+                                return true;
+                            }
                         }
-                        b[row][column] = 0;
+                        board[row][column] = 0;
                     }
                     return false;
                 }
@@ -73,16 +75,75 @@ public class SudokuGame {
         return true;
     }
 
-    static boolean isValid(int[][] b, int num, int row, int column) {
+    public void randomize() {
+        // remove random values in the board based on numRemove
+        for (int i = 0; i < numRemove; i++) {
+            boolean val = true;
+            int rr = 0;
+            int rc = 0;
+            while (val) {
+                rr = (int) (Math.random() * 9);
+                rc = (int) (Math.random() * 9);
+
+                if (board[rr][rc] != 0) {
+                    val = false;
+                }
+            }
+            board[rr][rc] = 0;
+        }
+    }
+
+    public boolean solve() {
+        // Backtracking Algorithm
+        // 1. Choose Empty
+        // 2. Try all number 1-9
+        // 3. Check validity after all each # and if not backtrack
+        for (int row = 0; row < board.length; row++) {
+            for (int column = 0; column < board.length; column++) {
+                if (board[row][column] == 0) {
+                    for (int i = 1; i <= 9; i++) {
+                        board[row][column] = i;
+                        if (isValid(i, row, column) && solve()) {
+                            return true;
+                        }
+                        board[row][column] = 0;
+                    }
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public boolean solveFull() {
+        // WRONG IDEA: Produces non-variable board that has a pattern
+        for (int row = 0; row < board.length; row++) {
+            for (int column = 0; column < board.length; column++) {
+                if (board[row][column] == 0) {
+                    for (int i : numList) {
+                        board[row][column] = i;
+                        if (isValid(i, row, column) && solve()) {
+                            return true;
+                        }
+                        board[row][column] = 0;
+                    }
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public boolean isValid(int num, int row, int column) {
         // check row
-        for (int i = 0; i < b[0].length; i++) {
-            if (b[row][i] == num && column != i) {
+        for (int i = 0; i < board[0].length; i++) {
+            if (board[row][i] == num && column != i) {
                 return false;
             }
         }
         // check column
-        for (int i = 0; i < b.length; i++) {
-            if (b[i][column] == num && row != i) {
+        for (int i = 0; i < board.length; i++) {
+            if (board[i][column] == num && row != i) {
                 return false;
             }
         }
@@ -92,7 +153,7 @@ public class SudokuGame {
 
         for (int i = box_y * 3; i < box_y * 3 + 3; i++) {
             for (int j = box_x * 3; j < box_x * 3 + 3; j++) {
-                if (b[i][j] == num && row != i && column != j) {
+                if (board[i][j] == num && row != i && column != j) {
                     return false;
                 }
             }
@@ -101,17 +162,17 @@ public class SudokuGame {
 
     }
 
-    public void printBoard(int[][] b) {
-        for (int row = 0; row < b.length; row++) {
+    public void printBoard() {
+        for (int row = 0; row < board.length; row++) {
             if ((row % 3) == 0 && row != 0) {
-                System.out.println(" - - - - - - - - - - - - - - - ");
+                System.out.println(" - - - - - - - - - - - - - - - -");
             }
-            for (int column = 0; column < b.length; column++) {
+            for (int column = 0; column < board.length; column++) {
                 if ((column % 3) == 0 && column != 0) {
                     System.out.print(" | ");
                 }
-                if (b[row][column] != 0) {
-                    System.out.print(" " + b[row][column] + " ");
+                if (board[row][column] != 0) {
+                    System.out.print(" " + board[row][column] + " ");
 
                 } else {
                     System.out.print(" X ");
@@ -124,23 +185,37 @@ public class SudokuGame {
 
     public static void main(String[] args) {
         try {
+            int[][] board = {
+                    { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                    { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                    { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                    { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                    { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                    { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                    { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                    { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                    { 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+            };
+
             Scanner diff = new Scanner(System.in);
-            System.out.println("Choose a difficulty (Easy, Medium, Hard): ");
-            String difficulty = diff.nextLine();
-            if (difficulty.equals("Easy") || difficulty.equals("Medium") || difficulty.equals("Hard")) {
+            System.out.println("Welcome to Sudoku Puzzle Generator & Solver!");
+            System.out.print("Choose a level [Easy(1), Medium(2), Hard(3)]: ");
+            int difficulty = diff.nextInt();
+            diff.nextLine();
+            if (difficulty == 1 || difficulty == 2 || difficulty == 3) {
                 System.out.println("___________Sudoku Board____________");
-                SudokuGame sudokuObj = new SudokuGame();
-                int[][] rand_board = sudokuObj.randomize(difficulty);
-                sudokuObj.printBoard(rand_board);
+                SudokuGame sudokuObj = new SudokuGame(board, difficulty);
+                sudokuObj.fillBoard();
+                sudokuObj.randomize();
+                sudokuObj.printBoard();
+                sudokuObj.solve();
 
-                Scanner await = new Scanner(System.in);
-                System.out.println("Instructions: to view solution press return.");
-                String response = await.nextLine();
+                System.out.println("Instructions: to view solution type \'yes\'");
+                String response = diff.nextLine();
 
-                if (!response.equals(" ")) {
-                    sudokuObj.solve(rand_board);
+                if (response.toLowerCase().equals("yes")) {
                     System.out.println("___________Solution___________");
-                    sudokuObj.printBoard(rand_board);
+                    sudokuObj.printBoard();
                 }
             } else {
                 System.out.println("Please input valid values!");
@@ -149,7 +224,6 @@ public class SudokuGame {
             System.out.println("Looks like there was an error. Please try again.");
             System.out.println(e);
         }
-
 
     }
 }
