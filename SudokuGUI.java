@@ -15,8 +15,8 @@ public class SudokuGUI implements ActionListener {
     JLabel timeLabel;
     static int[] arrayofvalues = {};
     static int[] arrayofvalues2 = {};
-    public int[][] rand_board;
-    static int[][] solved_board;
+    private int[][] rand_board;
+    private int[][] solved_board;
 
     // Timer attributes
     int elapsed = 0;
@@ -48,29 +48,40 @@ public class SudokuGUI implements ActionListener {
         // Reused reformating code
     }
 
-    public void firstwindow(String difficulty) {
-        // Creating Randomized Board 
-        SudokuGame createboard = new SudokuGame();
-        SudokuGUI selfObj = new SudokuGUI();
-        selfObj.rand_board = createboard.randomize(difficulty);
-        createboard.printBoard(selfObj.rand_board);
+    public void firstwindow(int difficulty) {
+        // Creating Randomized Board
+        int[][] board = {
+                { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+        };
+        SudokuGame createboard = new SudokuGame(board, difficulty);
+        // SudokuGUI selfObj = new SudokuGUI();
+        createboard.fillBoard();
+        createboard.randomize();
+        rand_board = createboard.getBoard();
 
         // Reordering board (by box of 3x3)
         for (int boxy = 0; boxy < 3; boxy++) {
             for (int boxx = 0; boxx < 3; boxx++) {
                 for (int i = boxy * 3; i < boxy * 3 + 3; i++) {
                     for (int j = boxx * 3; j < boxx * 3 + 3; j++) {
-                        arrayofvalues = Arrays.copyOf(arrayofvalues, arrayofvalues.length+1);
-                        arrayofvalues[arrayofvalues.length-1] = selfObj.rand_board[i][j];
+                        arrayofvalues = Arrays.copyOf(arrayofvalues, arrayofvalues.length + 1);
+                        arrayofvalues[arrayofvalues.length - 1] = rand_board[i][j];
                     }
                 }
             }
         }
 
         // Solving Randomized Board
-        createboard.solve(selfObj.rand_board);
-        solved_board = selfObj.rand_board;
-        createboard.printBoard(solved_board);
+        createboard.solve();
+        solved_board = createboard.getBoard(); // solved board
 
         // Creating the JFrame (establishing window)
         frame = new JFrame();
@@ -79,19 +90,19 @@ public class SudokuGUI implements ActionListener {
         frame.setSize(600, 700);
         JPanel main_container = new JPanel();
         main_container.setLayout(new BoxLayout(main_container, BoxLayout.Y_AXIS));
-        
+
         // Sectioning the window (adding panels)
         JPanel container = new JPanel();
-        container.setPreferredSize(new Dimension(100,600));
-        container.setLayout(new GridLayout(3,3));
+        container.setPreferredSize(new Dimension(100, 600));
+        container.setLayout(new GridLayout(3, 3));
 
         JPanel parray1[] = new JPanel[9];
         JPanel parray2[] = new JPanel[9];
         for (int i = 0; i < 9; i++) {
             parray1[i] = new JPanel();
             parray1[i].setBorder(BorderFactory.createLineBorder(Color.black, 2));
-            parray1[i].setLayout(new GridLayout(3,3));
-            
+            parray1[i].setLayout(new GridLayout(3, 3));
+
             for (int j = 0; j < 9; j++) {
                 parray2[j] = new JPanel();
                 parray2[j].setBorder(BorderFactory.createLineBorder(Color.black));
@@ -126,15 +137,15 @@ public class SudokuGUI implements ActionListener {
         // Add Solve button
         solveButton = new JButton("Solve Puzzle");
         solveButton.addActionListener(this);
-        solveButton.setPreferredSize(new Dimension(40,60));
+        solveButton.setPreferredSize(new Dimension(40, 60));
         container2.add(solveButton);
-        
+
         main_container.add(container2);
         frame.add(main_container);
-        frame.setVisible(true); // makes frame visible 
+        frame.setVisible(true); // makes frame visible
     }
 
-    static void secondwindow(String ss, String ms, String hs) {
+    public void secondwindow(String ss, String ms, String hs) {
         // Creating the 2nd JFrame
         JFrame frame2 = new JFrame();
         frame2.setTitle("Sudoku Solution");
@@ -146,28 +157,27 @@ public class SudokuGUI implements ActionListener {
             for (int boxx = 0; boxx < 3; boxx++) {
                 for (int i = boxy * 3; i < boxy * 3 + 3; i++) {
                     for (int j = boxx * 3; j < boxx * 3 + 3; j++) {
-                        arrayofvalues2 = Arrays.copyOf(arrayofvalues2, arrayofvalues2.length+1);
-                        arrayofvalues2[arrayofvalues2.length-1] = solved_board[i][j];
+                        arrayofvalues2 = Arrays.copyOf(arrayofvalues2, arrayofvalues2.length + 1);
+                        arrayofvalues2[arrayofvalues2.length - 1] = solved_board[i][j];
                     }
                 }
             }
         }
-        System.out.println(Arrays.toString(arrayofvalues2));
         JPanel main_container = new JPanel();
         main_container.setLayout(new BoxLayout(main_container, BoxLayout.Y_AXIS));
-        
+
         // Sectioning the window (adding panels)
         JPanel container = new JPanel();
-        container.setPreferredSize(new Dimension(100,600));
-        container.setLayout(new GridLayout(3,3));
+        container.setPreferredSize(new Dimension(100, 600));
+        container.setLayout(new GridLayout(3, 3));
 
         JPanel parray1[] = new JPanel[9];
         JPanel parray2[] = new JPanel[9];
         for (int i = 0; i < 9; i++) {
             parray1[i] = new JPanel();
             parray1[i].setBorder(BorderFactory.createLineBorder(Color.black, 2));
-            parray1[i].setLayout(new GridLayout(3,3));
-            
+            parray1[i].setLayout(new GridLayout(3, 3));
+
             for (int j = 0; j < 9; j++) {
                 parray2[j] = new JPanel();
                 parray2[j].setBorder(BorderFactory.createLineBorder(Color.black));
@@ -180,9 +190,9 @@ public class SudokuGUI implements ActionListener {
 
                 JLabel innerText = new JLabel(check_val);
                 innerText.setFont(new Font("American Typewriter", Font.BOLD, 25));
-                
+
                 // mark as green if part of solution
-                if (arrayofvalues[i*9+j] == 0) {
+                if (arrayofvalues[i * 9 + j] == 0) {
                     innerText.setForeground(Color.decode("#0bda51"));
                 }
 
@@ -207,20 +217,24 @@ public class SudokuGUI implements ActionListener {
     public static void main(String[] args) {
         SudokuGUI gui = new SudokuGUI();
         Scanner diff = new Scanner(System.in);
-        System.out.println("Choose a difficulty (Easy, Medium, Hard): ");
-        String difficulty = diff.nextLine();
-        if (difficulty.equals("Easy") || difficulty.equals("Medium") || difficulty.equals("Hard")) {
+        System.out.print("Choose a level [Easy(1), Medium(2), Hard(3)]: ");
+        int difficulty = diff.nextInt();
+        if (difficulty == 1 || difficulty == 2 || difficulty == 3) {
             gui.firstwindow(difficulty);
         } else {
-            System.out.println("Please input 1 of the 3 available options!");
+            System.out.println("\nPlease input 1 of the 3 available options!");
         }
     }
 
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == solveButton) {
-            timer.stop();
-            frame.dispose();
-            secondwindow(seconds_string, minutes_string, hours_string);
+        try {
+            if (e.getSource() == solveButton) {
+                timer.stop();
+                frame.dispose();
+                secondwindow(seconds_string, minutes_string, hours_string);
+            }
+        } catch (Exception ex) {
+            System.out.print("Error");
         }
     }
 
